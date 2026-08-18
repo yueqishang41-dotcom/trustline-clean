@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-size: 18px;
+  }
+  body {
+    @apply text-slate-800 antialiased bg-slate-100;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  }
+}
+
+@layer components {
+  .panel {
+    @apply bg-white rounded-xl border border-slate-200 shadow-sm;
+  }
+  .panel-hd {
+    @apply px-5 py-3 border-b border-slate-100 flex items-center gap-2;
+  }
+  .panel-bd {
+    @apply p-5;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium
+           transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply btn bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800;
+  }
+  .btn-secondary {
+    @apply btn bg-white text-slate-700 border border-slate-300 hover:bg-slate-50;
+  }
+
+  .ipt {
+    @apply w-full px-4 py-3 text-sm border border-slate-300 rounded-lg
+           placeholder:text-slate-400
+           focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500
+           transition-all;
+  }
+  .lbl {
+    @apply block text-sm font-medium text-slate-700 mb-1.5;
+  }
+  .tag {
+    @apply inline-flex items-center px-3 py-1 rounded-md text-xs font-medium border;
+  }
+
+  .dl {
+    @apply divide-y divide-slate-100;
+  }
+  .dl-item {
+    @apply flex items-center justify-between py-2.5;
+  }
+  .dl-label {
+    @apply text-sm text-slate-500;
+  }
+  .dl-value {
+    @apply text-sm font-medium text-slate-800;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeIn { animation: fadeIn 0.25s ease-out; }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { @apply bg-transparent; }
+::-webkit-scrollbar-thumb { @apply bg-slate-300 rounded-full; }
+::-webkit-scrollbar-thumb:hover { @apply bg-slate-400; }

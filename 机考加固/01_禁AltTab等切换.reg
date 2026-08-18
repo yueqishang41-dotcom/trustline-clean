@@ -1,0 +1,8 @@
+Windows Registry Editor Version 5.00
+
+; 禁用 Alt+Tab 窗口切换（当前用户生效，注销或重启后生效）
+; 注：Win10/11 部分版本仍需实测确认；若无效请改用 04_禁用Win键_防切屏.ahk 里的 Alt+Tab 拦截兜底
+[HKEY_CURRENT_USER\Control Panel\Desktop]
+"CoolSwitch"="0"
+
+; 禁用 Alt+Esc（循环切换窗口，无注册表原生键，靠 AHK 兜底见 04 脚本）

@@ -1,0 +1,17 @@
+Windows Registry Editor Version 5.00
+
+; 机考结束 / 复原电脑时运行本文件，把 01、02 的改动全部撤销
+; 02 部分需管理员权限运行
+
+; 恢复 Alt+Tab
+[HKEY_CURRENT_USER\Control Panel\Desktop]
+"CoolSwitch"="1"
+
+; 恢复"切换用户"与"锁定"（删除策略项）
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
+"HideFastUserSwitching"=-
+"DisableLockWorkstation"=-
+
+; 恢复任务管理器
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\System]
+"DisableTaskMgr"=-
