@@ -3,15 +3,34 @@
   publish = "dist"
   functions = "netlify/functions"
 
+  [build.environment]
+    NODE_VERSION = "20"
+
 # DeepSeek 代理：同步函数默认超时 10s，DeepSeek 生成慢时易 504，
 # 提到同步函数上限 26s（chat 内部还带 24s 主动超时）
 [functions]
   [functions.timeout]
     chat = 26
 
+# ---- 正式实验 API 分流：前端请求 /api/* ，重写到对应的 Netlify Function ----
 [[redirects]]
-  from = "/api/*"
+  from = "/api/chat"
   to = "/.netlify/functions/chat"
+  status = 200
+
+[[redirects]]
+  from = "/api/collect"
+  to = "/.netlify/functions/collect"
+  status = 200
+
+[[redirects]]
+  from = "/api/export"
+  to = "/.netlify/functions/export"
+  status = 200
+
+[[redirects]]
+  from = "/api/health"
+  to = "/.netlify/functions/health"
   status = 200
 
 # 预实验版独立页面：按静态文件直接提供服务，不被 SPA 兜底重写
