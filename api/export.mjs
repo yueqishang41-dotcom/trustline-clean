@@ -45,6 +45,21 @@ export default async function handler(req, res) {
     // 3) 按开始时间排序
     payloads.sort((a, b) => String(a.startTime || '').localeCompare(String(b.startTime || '')));
 
+    // 元数据统计：?format=count → 返回已收集被试数量与清单（下载页用）
+    if (fmt === 'count') {
+      return res.status(200).json({
+        ok: true,
+        count: payloads.length,
+        subjects: payloads.map((p) => ({
+          subjectId: p.subjectId ?? '',
+          name: p.name ?? '',
+          startTime: p.startTime ?? '',
+          endTime: p.endTime ?? '',
+          totalScore: (p.scores && p.scores.totalScore) ?? '',
+        })),
+      });
+    }
+
     if (fmt === 'json') {
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.setHeader('Content-Disposition', 'attachment; filename="formal-data.json"');

@@ -5,6 +5,7 @@
   "installCommand": "npm install",
   "rewrites": [
     { "source": "/pilot.html", "destination": "/pilot.html" },
+    { "source": "/download.html", "destination": "/download.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

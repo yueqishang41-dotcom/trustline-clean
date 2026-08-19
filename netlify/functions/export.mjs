@@ -48,6 +48,25 @@ export async function handler(event) {
     payloads.sort((a, b) => String(a.startTime || '').localeCompare(String(b.startTime || '')));
 
     const fmt = (qp.format || 'csv').toLowerCase();
+
+    // 元数据统计：?format=count → 返回已收集被试数量与清单（下载页用）
+    if (fmt === 'count') {
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          ok: true,
+          count: payloads.length,
+          subjects: payloads.map((p) => ({
+            subjectId: p.subjectId ?? '',
+            name: p.name ?? '',
+            startTime: p.startTime ?? '',
+            endTime: p.endTime ?? '',
+            totalScore: (p.scores && p.scores.totalScore) ?? '',
+          })),
+        }),
+      };
+    }
+
     if (fmt === 'json') {
       return {
         statusCode: 200,

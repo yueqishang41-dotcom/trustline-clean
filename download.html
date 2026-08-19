@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>正式实验数据下载</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif; background:#f1f5f9; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; color:#1e293b; }
+  .card { width:100%; max-width:760px; background:#fff; border-radius:20px; box-shadow:0 10px 40px rgba(0,0,0,.10); overflow:hidden; }
+  .hero { background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 60%,#3b82f6 100%); color:#fff; padding:28px 32px; }
+  .hero h1 { font-size:22px; font-weight:800; letter-spacing:.5px; }
+  .hero p { font-size:13px; opacity:.8; margin-top:6px; }
+  .body { padding:28px 32px 32px; }
+  .row { display:flex; gap:10px; align-items:center; margin-bottom:18px; flex-wrap:wrap; }
+  label { font-size:13px; font-weight:600; color:#475569; }
+  input { flex:1; min-width:200px; padding:10px 14px; border:1px solid #cbd5e1; border-radius:10px; font-size:14px; outline:none; }
+  input:focus { border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.12); }
+  button { padding:10px 22px; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; background:#2563eb; color:#fff; }
+  button:hover { background:#1d4ed8; }
+  button:disabled { background:#94a3b8; cursor:not-allowed; }
+  #status { font-size:13px; margin-bottom:14px; min-height:20px; }
+  #status.ok { color:#059669; }
+  #status.err { color:#dc2626; }
+  .stat { display:flex; align-items:baseline; gap:8px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px 18px; margin-bottom:18px; }
+  .stat b { font-size:30px; color:#1e3a8a; }
+  .stat span { font-size:13px; color:#64748b; }
+  table { width:100%; border-collapse:collapse; font-size:13px; margin-bottom:18px; }
+  th { background:#f8fafc; color:#64748b; font-weight:600; text-align:left; padding:8px 12px; border-bottom:2px solid #e2e8f0; }
+  td { padding:8px 12px; border-bottom:1px solid #f1f5f9; }
+  td.empty { text-align:center; color:#94a3b8; padding:22px 12px; }
+  .actions { display:flex; gap:12px; flex-wrap:wrap; }
+  a.dl { flex:1; min-width:180px; text-align:center; padding:12px 18px; border-radius:12px; text-decoration:none; font-size:14px; font-weight:700; background:#eef2ff; color:#1d4ed8; border:1px solid #c7d2fe; }
+  a.dl:hover { background:#e0e7ff; }
+  a.dl.disabled { opacity:.4; pointer-events:none; }
+  .foot { font-size:11px; color:#94a3b8; margin-top:16px; line-height:1.7; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="hero">
+    <h1>📥 正式实验数据下载</h1>
+    <p>AI 监督校准测验 · 厚粲杯 · 主试专用入口（部署站点的 /download.html）</p>
+  </div>
+  <div class="body">
+    <div class="row">
+      <label for="token">导出密码（FORMAL_EXPORT_TOKEN，未设置则留空）</label>
+      <input type="password" id="token" placeholder="没有设置就留空"/>
+      <button id="connect" onclick="refresh()">连接并刷新</button>
+    </div>
+
+    <div id="status">输入密码后点击"连接并刷新"，验证权限并查看已收集数据。</div>
+
+    <div class="stat">
+      <b id="count">--</b><span>份已收集</span>
+    </div>
+
+    <table>
+      <thead><tr><th>被试编号</th><th>姓名</th><th>开始时间</th><th>总分</th></tr></thead>
+      <tbody id="subject-list"><tr><td colspan="4" class="empty">—</td></tr></tbody>
+    </table>
+
+    <div class="actions">
+      <a class="dl disabled" id="download-csv" download>⬇️ 下载宽表 CSV（全部被试，含行为日志）</a>
+      <a class="dl disabled" id="download-json" download>⬇️ 下载完整 JSON（供 SPSS / R 分析）</a>
+    </div>
+
+    <div class="foot">
+      说明：CSV 为一人一行的宽表，含模块 A 逐题得分、行为动作标志、参考答稿 / AI 初稿 / 被试终稿、模块 B 逐题、全量行为日志；
+      JSON 为最高保真原始数据。若设置了 FORMAL_EXPORT_TOKEN，请先在上方输入该密码。
+    </div>
+  </div>
+</div>
+
+<script>
+  function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function query(extra) {
+    const token = document.getElementById('token').value.trim();
+    const q = token ? '?token=' + encodeURIComponent(token) : '';
+    return q + (extra ? (q ? '&' : '?') + extra : '');
+  }
+
+  async function refresh() {
+    const statusEl = document.getElementById('status');
+    const countEl = document.getElementById('count');
+    const listEl = document.getElementById('subject-list');
+    const csv = document.getElementById('download-csv');
+    const json = document.getElementById('download-json');
+
+    statusEl.textContent = '连接中…';
+    statusEl.className = '';
+    csv.classList.add('disabled');
+    json.classList.add('disabled');
+    countEl.textContent = '…';
+
+    try {
+      const res = await fetch('/api/export' + query('format=count'), { headers: { Accept: 'application/json' } });
+      if (!res.ok) {
+        const t = await res.text().catch(() => '');
+        statusEl.textContent = '连接失败（' + res.status + '）' +
+          (res.status === 401 ? '：导出密码错误，请检查上方输入' : '：' + String(t).slice(0, 120));
+        statusEl.className = 'err';
+        countEl.textContent = '--';
+        listEl.innerHTML = '<tr><td colspan="4" class="empty">—</td></tr>';
+        return;
+      }
+      const data = await res.json();
+      countEl.textContent = data.count ?? 0;
+      statusEl.textContent = '✅ 连接成功，数据链路正常';
+      statusEl.className = 'ok';
+      const rows = (data.subjects || []).map((s) =>
+        '<tr><td>' + esc(s.subjectId) + '</td><td>' + esc(s.name) + '</td><td>' + esc(s.startTime) + '</td><td>' + esc(s.totalScore) + '</td></tr>'
+      ).join('');
+      listEl.innerHTML = rows || '<tr><td colspan="4" class="empty">暂无数据</td></tr>';
+      csv.href = '/api/export' + query();
+      json.href = '/api/export' + query('format=json');
+      csv.classList.remove('disabled');
+      json.classList.remove('disabled');
+    } catch (e) {
+      statusEl.textContent = '连接失败：' + e.message;
+      statusEl.className = 'err';
+      countEl.textContent = '--';
+      listEl.innerHTML = '<tr><td colspan="4" class="empty">—</td></tr>';
+    }
+  }
+</script>
+</body>
+</html>
